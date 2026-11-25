@@ -1,0 +1,64 @@
+
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" href="{% static 'admin_custom.css' %}">
+    <style>
+        html,
+        html[data-theme="dark"],
+        html[data-theme="light"] {
+            color-scheme: light !important;
+            --primary: #101827;
+            --secondary: #1c2a40;
+            --accent: #d6ad60;
+            --body-bg: #f7f5f0;
+            --body-fg: #101827;
+            --body-quiet-color: #5d6470;
+            --header-bg: #101827;
+            --header-color: #d6ad60;
+            --header-branding-color: #d6ad60;
+            --breadcrumbs-bg: #1c2a40;
+            --breadcrumbs-fg: #ffffff;
+            --darkened-bg: #eee8dc;
+            --selected-row: #f0e5ce;
+            --link-fg: #9a742c;
+            --link-hover-color: #101827;
+            --button-bg: #101827;
+            --default-button-bg: #101827;
+        }
+
+        body,
+        #content,
+        #content-main,
+        #content-related {
+            background: #f7f5f0 !important;
+            color: #101827 !important;
+        }
+
+        #content h1,
+        #recent-actions-module h2,
+        #recent-actions-module h3,
+        #recent-actions-module p {
+            color: #101827 !important;
+        }
+
+        #recent-actions-module,
+        .module,
+        .module table,
+        .module table tr,
+        .module table td,
+        .module table th {
+            background-color: #ffffff !important;
+            color: #101827 !important;
+        }
+
+        .module h2,
+        .module caption,
+        .inline-group h2 {
+            background: #1c2a40 !important;
+            color: #ffffff !important;
+        }
+    </style>
+{% endblock %}

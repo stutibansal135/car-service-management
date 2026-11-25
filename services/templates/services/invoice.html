@@ -1,0 +1,40 @@
+{% load csm_extras %}<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Invoice #{{ b.pk }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-100 py-8 text-slate-800 print:bg-white print:py-0">
+  <div class="mx-auto mb-4 flex max-w-3xl justify-between px-4 print:hidden">
+    <a href="{{ back_url }}" class="text-sm text-slate-500 hover:text-slate-900">&larr; Back</a>
+    <button onclick="window.print()" class="rounded-lg bg-slate-900 px-4 py-2 text-sm font-semibold text-amber-300">Print / Save as PDF</button>
+  </div>
+  <div class="mx-auto max-w-3xl rounded-xl bg-white p-8 shadow print:shadow-none">
+    <div class="mb-6 flex items-start justify-between border-b pb-5">
+      <div><div class="text-2xl font-extrabold tracking-widest">CS<span class="text-amber-500">M</span></div>
+        <div class="text-xs text-slate-500">Car Service Management<br>Rajpura Road, Model Town, Ludhiana</div></div>
+      <div class="text-right"><div class="text-xl font-bold">INVOICE</div><div class="text-sm text-slate-500">No. {{ b.pk|stringformat:"05d" }}<br>{{ b.booking_date|date:"d M Y" }}</div></div>
+    </div>
+    <div class="mb-6 grid grid-cols-2 gap-4 text-sm">
+      <div><div class="text-xs uppercase text-slate-400">Billed to</div><div class="font-semibold">{{ b.car.customer.name }}</div><div class="text-slate-500">{{ b.car.customer.phone }}</div></div>
+      <div><div class="text-xs uppercase text-slate-400">Vehicle</div><div class="font-semibold">{{ b.car.brand }} {{ b.car.model }}</div><div class="text-slate-500">{{ b.car.registration_number }}{% if b.odometer_km %} &middot; {{ b.odometer_km }} km{% endif %}</div></div>
+    </div>
+    <table class="mb-6 w-full text-left text-sm">
+      <thead class="border-b text-xs uppercase text-slate-400"><tr><th class="py-2">Description</th><th class="text-right">Qty</th><th class="text-right">Rate</th><th class="text-right">Amount</th></tr></thead>
+      <tbody class="divide-y">
+        {% for i in service_items %}<tr><td class="py-2">{{ i.service.name }}</td><td class="text-right">1</td><td class="text-right">{{ i.price|inr }}</td><td class="text-right">{{ i.price|inr }}</td></tr>{% endfor %}
+        {% for i in part_items %}<tr><td class="py-2">{{ i.part.name }} <span class="text-xs text-slate-400">(part)</span></td><td class="text-right">{{ i.quantity }}</td><td class="text-right">{{ i.unit_price|inr }}</td><td class="text-right">{{ i.line_total|inr }}</td></tr>{% endfor %}
+      </tbody>
+    </table>
+    <div class="ml-auto w-64 space-y-1 text-sm">
+      <div class="flex justify-between"><span class="text-slate-500">Services</span><span>{{ services_total|inr }}</span></div>
+      <div class="flex justify-between"><span class="text-slate-500">Parts</span><span>{{ parts_total|inr }}</span></div>
+      <div class="flex justify-between border-t pt-1 text-base font-bold"><span>Total</span><span>{{ total|inr }}</span></div>
+      <div class="flex justify-between"><span class="text-slate-500">Paid</span><span>{{ paid|inr }}</span></div>
+      <div class="flex justify-between font-semibold"><span>Balance due</span><span>{{ balance|inr }}</span></div>
+    </div>
+    {% if payments %}<div class="mt-6 border-t pt-4 text-xs text-slate-500"><div class="mb-1 font-semibold uppercase">Payments received</div>
+      {% for p in payments %}<div>{{ p.paid_on|date:"d M Y" }} &middot; {{ p.method }} &middot; {{ p.amount|inr }}{% if p.reference %} &middot; {{ p.reference }}{% endif %}</div>{% endfor %}</div>{% endif %}
+    <p class="mt-8 text-center text-xs text-slate-400">Thank you for choosing CSM.</p>
+  </div>
+</body></html>

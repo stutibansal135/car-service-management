@@ -1,0 +1,52 @@
+{% load csm_extras %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CSM{% endblock %} | Car Service Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = { theme: { extend: { colors: {
+      navy: { DEFAULT: '#101827', light: '#1c2a40' }, gold: '#d6ad60', cream: '#f7f5f0' } } } }
+  </script>
+</head>
+<body class="bg-cream text-slate-800 antialiased">
+{% with name=request.resolver_match.url_name|default:'' %}
+<div class="min-h-screen lg:flex">
+
+  <aside class="bg-navy text-slate-300 lg:w-60 lg:min-h-screen lg:shrink-0">
+    <div class="flex items-center justify-between px-5 py-4 lg:py-6">
+      <a href="{% url home_url %}" class="text-xl font-extrabold tracking-widest text-white">CS<span class="text-gold">M</span></a>
+      <span class="text-[11px] uppercase tracking-widest text-slate-400">{{ role_label }}</span>
+    </div>
+    <nav class="flex gap-1 overflow-x-auto px-3 pb-3 text-sm lg:flex-col lg:overflow-visible lg:pb-0">
+      {% for label, url, key in nav %}
+        <a href="{% url url %}"
+           class="whitespace-nowrap rounded-lg px-3 py-2 hover:bg-navy-light hover:text-gold
+                  {% if key in name %}bg-navy-light text-gold font-semibold{% endif %}">{{ label }}</a>
+      {% endfor %}
+    </nav>
+    <div class="flex items-center justify-between gap-3 border-t border-white/10 px-5 py-3 text-xs lg:mt-6 lg:block lg:py-4">
+      <div class="text-slate-400 lg:mb-2">Signed in as <span class="text-white">{{ request.user.username }}</span></div>
+      <form method="post" action="{% url 'logout' %}">{% csrf_token %}
+        <button class="rounded-md border border-white/20 px-3 py-1.5 hover:border-gold hover:text-gold">Log out</button>
+      </form>
+    </div>
+  </aside>
+
+  <main class="min-w-0 flex-1 px-4 py-6 sm:px-8 lg:py-8">
+    {% if messages %}
+      <div class="mb-5 space-y-2">
+        {% for m in messages %}
+          <div class="rounded-lg border px-4 py-3 text-sm
+            {% if m.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-800{% else %}border-emerald-200 bg-emerald-50 text-emerald-800{% endif %}">
+            {{ m }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% block content %}{% endblock %}
+  </main>
+</div>
+{% endwith %}
+</body>
+</html>

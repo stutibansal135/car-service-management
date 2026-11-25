@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en"><head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}CSM{% endblock %} | Car Service Management</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>tailwind.config={theme:{extend:{colors:{navy:{DEFAULT:'#101827',light:'#1c2a40'},gold:'#d6ad60',cream:'#f7f5f0'}}}}</script>
+</head>
+<body class="bg-cream text-slate-800">
+  <header class="bg-navy">
+    <div class="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4">
+      <a href="{% url 'home' %}" class="text-xl font-extrabold tracking-widest text-white">CS<span class="text-gold">M</span></a>
+      <nav class="flex flex-wrap items-center gap-5 text-sm text-slate-300">
+        <a href="{% url 'home' %}#services" class="hover:text-gold">Services</a>
+        <a href="{% url 'track' %}" class="hover:text-gold">Track my car</a>
+        <a href="{% url 'about' %}" class="hover:text-gold">About</a>
+        {% if user.is_authenticated %}
+          <a href="{% url 'after_login' %}" class="rounded-lg bg-gold px-4 py-1.5 font-semibold text-navy">My dashboard</a>
+        {% else %}
+          <a href="{% url 'login' %}" class="rounded-lg border border-gold px-4 py-1.5 font-semibold text-gold hover:bg-gold hover:text-navy">Login</a>
+          <a href="{% url 'signup' %}" class="rounded-lg bg-gold px-4 py-1.5 font-semibold text-navy">Sign up</a>
+        {% endif %}
+      </nav>
+    </div>
+    {% block hero %}{% endblock %}
+  </header>
+  {% if messages %}<div class="mx-auto mt-4 max-w-6xl space-y-2 px-6">
+    {% for m in messages %}<div class="rounded-lg border px-4 py-3 text-sm {% if m.tags == 'error' %}border-rose-200 bg-rose-50 text-rose-800{% else %}border-emerald-200 bg-emerald-50 text-emerald-800{% endif %}">{{ m }}</div>{% endfor %}
+  </div>{% endif %}
+  {% block body %}{% endblock %}
+  <footer class="mt-12 bg-navy py-6 text-center text-xs text-slate-400">&copy; Car Service Management &middot; DBMS university project</footer>
+</body></html>

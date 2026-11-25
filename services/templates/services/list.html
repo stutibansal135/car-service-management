@@ -1,0 +1,60 @@
+{% extends 'services/base.html' %}{% load csm_extras %}
+{% block title %}{{ title }}{% endblock %}
+{% block content %}
+<div class="mb-5 flex flex-wrap items-center justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-bold text-navy">{{ title }}</h1>
+    <p class="text-sm text-slate-500">{{ count }} record{{ count|pluralize }}</p>
+  </div>
+  {% if can_add %}<a href="{% url prefix|add:'_add' %}" class="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-gold hover:bg-navy-light">+ Add new</a>{% endif %}
+</div>
+
+<form method="get" class="mb-4 flex flex-wrap gap-2">
+  <input name="q" value="{{ q }}" placeholder="Search..." class="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-gold focus:outline-none sm:w-72">
+  {% if filter_choices %}
+  <select name="f" class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm">
+    <option value="">All {{ filter_label|lower }}s</option>
+    {% for val, label in filter_choices %}<option value="{{ val }}" {% if f == val|stringformat:'s' %}selected{% endif %}>{{ label }}</option>{% endfor %}
+  </select>
+  {% endif %}
+  <button class="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy hover:opacity-90">Search</button>
+  {% if q or f %}<a href="?" class="px-2 py-2 text-sm text-slate-500 hover:text-navy">Clear</a>{% endif %}
+</form>
+
+<div class="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+  <table class="w-full text-left text-sm">
+    <thead class="bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+      <tr>{% for header, path in columns %}<th class="px-4 py-3 font-semibold">{{ header }}</th>{% endfor %}<th class="px-4 py-3"></th></tr>
+    </thead>
+    <tbody class="divide-y divide-slate-100">
+    {% for obj in page_obj %}
+      <tr class="hover:bg-cream/60">
+        {% for header, path in columns %}
+          <td class="px-4 py-3 {% if forloop.first %}font-medium text-navy{% endif %}">
+            {% if forloop.first and has_detail %}<a class="hover:text-gold" href="{% url prefix|add:'_detail' obj.pk %}">{{ obj|cell:path|pretty }}</a>
+            {% else %}{{ obj|cell:path|pretty }}{% endif %}
+          </td>
+        {% endfor %}
+        <td class="whitespace-nowrap px-4 py-3 text-right text-xs">
+          {% if has_detail %}<a class="mr-3 text-slate-500 hover:text-navy" href="{% url prefix|add:'_detail' obj.pk %}">View</a>{% endif %}
+          {% if can_edit %}<a class="mr-3 text-slate-500 hover:text-navy" href="{% url prefix|add:'_edit' obj.pk %}">Edit</a>{% endif %}
+          {% if can_delete %}<a class="text-rose-600 hover:underline" href="{% url prefix|add:'_delete' obj.pk %}">Delete</a>{% endif %}
+        </td>
+      </tr>
+    {% empty %}
+      <tr><td colspan="{{ columns|length|add:1 }}" class="px-4 py-10 text-center text-slate-400">Nothing found.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% if is_paginated %}
+<div class="mt-4 flex items-center justify-between text-sm text-slate-600">
+  <span>Page {{ page_obj.number }} of {{ paginator.num_pages }}</span>
+  <div class="flex gap-2">
+    {% if page_obj.has_previous %}<a class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 hover:border-gold" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.previous_page_number }}">&larr; Prev</a>{% endif %}
+    {% if page_obj.has_next %}<a class="rounded-lg border border-slate-300 bg-white px-3 py-1.5 hover:border-gold" href="?{% if querystring %}{{ querystring }}&{% endif %}page={{ page_obj.next_page_number }}">Next &rarr;</a>{% endif %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

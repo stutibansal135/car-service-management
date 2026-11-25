@@ -1,0 +1,97 @@
+{% extends 'services/base.html' %}{% load csm_extras %}
+{% block title %}Booking #{{ b.pk }}{% endblock %}
+{% block content %}
+<a href="{% url 'booking_list' %}" class="text-sm text-slate-500 hover:text-navy">&larr; All bookings</a>
+<div class="mb-6 mt-2 flex flex-wrap items-start justify-between gap-3">
+  <div>
+    <h1 class="text-2xl font-bold text-navy">Booking #{{ b.pk }} &nbsp;{{ b.status|pretty }} &nbsp;{{ b.payment_status|pretty }}</h1>
+    <p class="mt-1 text-sm text-slate-600">
+      <a class="font-medium hover:text-gold" href="{% url 'customer_detail' b.car.customer.pk %}">{{ b.car.customer.name }}</a>
+      &middot; {{ b.car.brand }} {{ b.car.model }} ({{ b.car.registration_number }})</p>
+    <p class="text-xs text-slate-400">{{ b.booking_date|date:"d M Y" }} &middot; Mechanic: {{ b.mechanic.name|default:"not assigned" }}{% if b.odometer_km %} &middot; {{ b.odometer_km }} km{% endif %}</p>
+    {% if b.notes %}<p class="mt-1 text-sm italic text-slate-500">"{{ b.notes }}"</p>{% endif %}
+  </div>
+  <div class="flex flex-wrap gap-2">
+    {% for s in next_statuses %}
+    <form method="post" action="{% url 'booking_set_status' b.pk %}">{% csrf_token %}<input type="hidden" name="status" value="{{ s }}">
+      <button class="rounded-lg px-4 py-2 text-sm font-semibold {% if s == 'Cancelled' %}border border-rose-300 text-rose-600 hover:bg-rose-50{% else %}bg-navy text-gold hover:bg-navy-light{% endif %}">
+        {% if s == 'In Progress' %}Start job{% elif s == 'Completed' %}Mark completed{% else %}Cancel booking{% endif %}</button></form>
+    {% endfor %}
+    <a href="{% url 'invoice' b.pk %}" target="_blank" class="rounded-lg border border-slate-300 px-4 py-2 text-sm">Print invoice</a>
+    <a href="{% url 'booking_edit' b.pk %}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm">Edit</a>
+    <a href="{% url 'booking_delete' b.pk %}" class="rounded-lg border border-slate-300 px-4 py-2 text-sm text-rose-600">Delete</a>
+  </div>
+</div>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <div class="space-y-6 lg:col-span-2">
+
+    <section class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="mb-3 font-semibold text-navy">Services</h2>
+      <table class="w-full text-left text-sm"><tbody class="divide-y divide-slate-100">
+        {% for i in service_items %}<tr><td class="py-2">{{ i.service.name }} <span class="text-xs text-slate-400">{{ i.service.category.name }}</span></td><td class="text-right">{{ i.price|inr }}</td>
+          <td class="w-16 text-right">{% if b.can_edit_items %}<form method="post" action="{% url 'booking_remove_service' b.pk i.pk %}">{% csrf_token %}<button class="text-xs text-rose-600 hover:underline">Remove</button></form>{% endif %}</td></tr>
+        {% empty %}<tr><td class="py-4 text-slate-400">No services added yet.</td></tr>{% endfor %}
+      </tbody></table>
+      {% if b.can_edit_items %}<form method="post" action="{% url 'booking_add_service' b.pk %}" class="mt-4 flex flex-wrap gap-2">{% csrf_token %}
+        <div class="min-w-0 flex-1">{{ service_form.service }}</div><button class="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy">Add service</button></form>{% endif %}
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="mb-3 font-semibold text-navy">Parts used</h2>
+      <table class="w-full text-left text-sm"><tbody class="divide-y divide-slate-100">
+        {% for i in part_items %}<tr><td class="py-2">{{ i.part.name }}</td><td class="text-slate-500">{{ i.quantity }} &times; {{ i.unit_price|inr }}</td><td class="text-right">{{ i.line_total|inr }}</td>
+          <td class="w-16 text-right">{% if b.can_edit_items %}<form method="post" action="{% url 'booking_remove_part' b.pk i.pk %}">{% csrf_token %}<button class="text-xs text-rose-600 hover:underline">Remove</button></form>{% endif %}</td></tr>
+        {% empty %}<tr><td class="py-4 text-slate-400">No parts used.</td></tr>{% endfor %}
+      </tbody></table>
+      {% if b.can_edit_items %}<form method="post" action="{% url 'booking_add_part' b.pk %}" class="mt-4 flex flex-wrap gap-2">{% csrf_token %}
+        <div class="min-w-0 flex-1">{{ part_form.part }}</div><div class="w-24">{{ part_form.quantity }}</div><button class="rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy">Add part</button></form>{% endif %}
+    </section>
+
+    {% if b.status == 'Completed' %}
+    <section class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="mb-3 font-semibold text-navy">Customer feedback</h2>
+      {% if b.feedback %}<p class="text-lg text-gold">{{ b.feedback.rating|stars }}</p><p class="text-sm text-slate-600">{{ b.feedback.comment|default:"(no comment)" }}</p>{% endif %}
+      <form method="post" action="{% url 'booking_feedback' b.pk %}" class="mt-3 grid gap-2 sm:grid-cols-4">{% csrf_token %}
+        <div>{{ feedback_form.rating }}</div><div class="sm:col-span-2"><input name="comment" placeholder="Comment (optional)" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+        <button class="rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-gold">{% if b.feedback %}Update{% else %}Save{% endif %}</button></form>
+    </section>{% endif %}
+  </div>
+
+  <div class="space-y-6">
+    <section class="rounded-xl border border-slate-200 bg-navy p-5 text-white">
+      <h2 class="mb-3 font-semibold text-gold">Invoice</h2>
+      <dl class="space-y-1.5 text-sm">
+        <div class="flex justify-between"><dt class="text-slate-300">Services</dt><dd>{{ totals.services|inr }}</dd></div>
+        <div class="flex justify-between"><dt class="text-slate-300">Parts</dt><dd>{{ totals.parts|inr }}</dd></div>
+        <div class="flex justify-between border-t border-white/20 pt-2 text-base font-semibold"><dt>Total</dt><dd>{{ totals.total|inr }}</dd></div>
+        <div class="flex justify-between"><dt class="text-slate-300">Paid</dt><dd>{{ totals.paid|inr }}</dd></div>
+        <div class="flex justify-between font-semibold text-gold"><dt>Balance due</dt><dd>{{ totals.balance|inr }}</dd></div>
+      </dl>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="mb-3 font-semibold text-navy">Payments</h2>
+      <ul class="divide-y divide-slate-100 text-sm">
+        {% for p in payments %}<li class="py-2">
+          <div class="flex justify-between"><span>{{ p.paid_on|date:"d M" }} &middot; {{ p.method }} {{ p.status|pretty }}</span><span class="font-medium {% if p.status == 'Rejected' %}text-slate-400 line-through{% endif %}">{{ p.amount|inr }}</span></div>
+          {% if p.reference %}<div class="text-xs text-slate-400">Ref: {{ p.reference }}</div>{% endif %}
+          {% if p.status == 'Pending' and p.batch %}
+          {% if p.batch.payments.all|length > 1 %}<div class="mt-1 text-xs text-sky-700">Part of one {{ p.batch.total_amount|inr }} payment covering {{ p.batch.payments.all|length }} invoices. Confirm / reject applies to all of them.</div>{% endif %}
+          <form method="post" action="{% url 'batch_verify' p.batch.pk %}" class="mt-1.5 flex gap-2">{% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <button name="action" value="confirm" class="rounded-md bg-emerald-600 px-3 py-1 text-xs font-semibold text-white hover:bg-emerald-700">Confirm received</button>
+            <button name="action" value="reject" class="rounded-md border border-rose-300 px-3 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50">Reject</button>
+          </form>{% endif %}
+        </li>
+        {% empty %}<li class="py-2 text-slate-400">No payments yet.</li>{% endfor %}
+      </ul>
+      {% if totals.pending %}<p class="mt-2 rounded-lg bg-sky-50 px-3 py-2 text-xs text-sky-800">{{ totals.pending|inr }} is awaiting verification.</p>{% endif %}
+      {% if b.status != 'Cancelled' and totals.payable > 0 %}
+      <form method="post" action="{% url 'booking_add_payment' b.pk %}" class="mt-4 space-y-2">{% csrf_token %}
+        {{ payment_form.amount }}{{ payment_form.method }}{{ payment_form.paid_on }}{{ payment_form.reference }}
+        <button class="w-full rounded-lg bg-gold px-4 py-2 text-sm font-semibold text-navy">Record payment</button></form>{% endif %}
+    </section>
+  </div>
+</div>
+{% endblock %}

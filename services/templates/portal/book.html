@@ -1,0 +1,46 @@
+{% extends 'services/base.html' %}
+{% block title %}Book a service{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-2xl font-bold text-navy">Book a service</h1>
+<p class="mb-5 text-sm text-slate-500">Choose your car, a date and the services you need. The price below is an estimate; parts, if any, are added by the mechanic.</p>
+<form method="post" class="grid gap-6 lg:grid-cols-3">{% csrf_token %}
+  <div class="space-y-5 lg:col-span-2">
+    <div class="grid gap-4 rounded-xl border border-slate-200 bg-white p-5 sm:grid-cols-2">
+      <div><label class="mb-1 block text-sm font-medium">Car</label>{{ form.car }}{% for e in form.car.errors %}<p class="mt-1 text-xs text-rose-600">{{ e }}</p>{% endfor %}</div>
+      <div><label class="mb-1 block text-sm font-medium">Preferred date</label>{{ form.booking_date }}{% for e in form.booking_date.errors %}<p class="mt-1 text-xs text-rose-600">{{ e }}</p>{% endfor %}</div>
+      <div class="sm:col-span-2"><label class="mb-1 block text-sm font-medium">Anything we should know?</label>{{ form.notes }}</div>
+    </div>
+    {% for e in form.services.errors %}<p class="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ e }}</p>{% endfor %}
+    {% for cat, items in groups %}
+    <div class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="mb-3 font-semibold text-navy">{{ cat.name }}</h2>
+      <div class="grid gap-2 sm:grid-cols-2">
+        {% for s in items %}
+        <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-slate-200 p-3 text-sm hover:border-gold">
+          <input type="checkbox" name="services" value="{{ s.pk }}" data-price="{{ s.price|floatformat:0 }}" data-mins="{{ s.duration_minutes }}" class="svc mt-1 h-4 w-4"{% if s.pk|stringformat:'s' in selected %} checked{% endif %}>
+          <span class="flex-1"><span class="block font-medium">{{ s.name }}</span><span class="block text-xs text-slate-400">{{ s.duration_minutes }} min</span></span>
+          <span class="shrink-0 text-slate-600">Rs {{ s.price|floatformat:0 }}</span>
+        </label>{% endfor %}
+      </div>
+    </div>{% endfor %}
+  </div>
+  <aside><div class="sticky top-4 rounded-xl bg-navy p-5 text-white">
+    <h2 class="mb-3 font-semibold text-gold">Your estimate</h2>
+    <div class="flex justify-between text-sm"><span class="text-slate-300">Services</span><span id="count">0</span></div>
+    <div class="flex justify-between text-sm"><span class="text-slate-300">Time needed</span><span id="mins">0 min</span></div>
+    <div class="mt-2 flex justify-between border-t border-white/20 pt-2 text-lg font-semibold"><span>Estimated total</span><span id="total">Rs 0</span></div>
+    <button class="mt-4 w-full rounded-lg bg-gold py-2.5 text-sm font-semibold text-navy hover:opacity-90">Request booking</button>
+  </div></aside>
+</form>
+<script>
+  const boxes = document.querySelectorAll('.svc');
+  function recalc(){
+    let n=0, t=0, m=0;
+    boxes.forEach(b => { if(b.checked){ n++; t += +b.dataset.price; m += +b.dataset.mins; } });
+    document.getElementById('count').textContent = n;
+    document.getElementById('mins').textContent = m + ' min';
+    document.getElementById('total').textContent = 'Rs ' + t.toLocaleString('en-IN');
+  }
+  boxes.forEach(b => b.addEventListener('change', recalc)); recalc();
+</script>
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'services/base.html' %}{% load csm_extras %}
+{% block title %}My account{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-2xl font-bold text-navy">My account</h1>
+<p class="mb-6 text-sm text-slate-500">Update your details and change your password.</p>
+
+<div class="grid gap-6 lg:grid-cols-3">
+  <section class="h-fit rounded-xl bg-navy p-5 text-white">
+    <div class="mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-gold text-xl font-bold text-navy">{{ u.first_name|default:u.username|slice:":1"|upper }}</div>
+    <div class="text-lg font-semibold">{{ u.get_full_name|default:u.username }}</div>
+    <div class="text-sm text-gold">{{ role_label }}</div>
+    <dl class="mt-4 space-y-2 border-t border-white/15 pt-4 text-sm">
+      <div class="flex justify-between"><dt class="text-slate-400">Username</dt><dd class="font-mono">{{ u.username }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Last login</dt><dd>{{ u.last_login|date:"d M, H:i"|default:"-" }}</dd></div>
+      {% if customer %}
+      <div class="flex justify-between"><dt class="text-slate-400">Customer since</dt><dd>{{ customer.joined_on|date:"d M Y" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Cars</dt><dd>{{ n_cars }}</dd></div>
+      {% endif %}
+      {% if mechanic %}
+      <div class="flex justify-between"><dt class="text-slate-400">Speciality</dt><dd>{{ mechanic.specialization.name|default:"All-round" }}</dd></div>
+      <div class="flex justify-between"><dt class="text-slate-400">Joined</dt><dd>{{ mechanic.hire_date|date:"d M Y" }}</dd></div>
+      {% endif %}
+    </dl>
+    {% if mechanic %}<p class="mt-4 text-xs text-slate-400">Speciality and joining date are managed by the admin.</p>{% endif %}
+  </section>
+
+  <div class="space-y-6 lg:col-span-2">
+    <form method="post" class="space-y-4 rounded-xl border border-slate-200 bg-white p-6">{% csrf_token %}
+      <input type="hidden" name="action" value="details">
+      <h2 class="font-semibold text-navy">Personal details</h2>
+      {% if details.non_field_errors %}<div class="rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{{ details.non_field_errors }}</div>{% endif %}
+      <div class="grid gap-4 sm:grid-cols-2">
+      {% for field in details %}<div {% if field.name == 'address' %}class="sm:col-span-2"{% endif %}>
+        <label for="{{ field.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ field.label }}</label>
+        {{ field }}{% for e in field.errors %}<p class="mt-1 text-xs text-rose-600">{{ e }}</p>{% endfor %}
+      </div>{% endfor %}
+      </div>
+      <button class="rounded-lg bg-navy px-5 py-2 text-sm font-semibold text-gold hover:bg-navy-light">Save details</button>
+    </form>
+
+    <form method="post" class="space-y-4 rounded-xl border border-slate-200 bg-white p-6">{% csrf_token %}
+      <input type="hidden" name="action" value="password">
+      <h2 class="font-semibold text-navy">Change password</h2>
+      {% for field in pw %}<div>
+        <label for="{{ field.id_for_label }}" class="mb-1 block text-sm font-medium text-slate-700">{{ field.label }}</label>
+        {{ field }}
+        {% if field.help_text %}<div class="mt-1 text-xs text-slate-400">{{ field.help_text|safe }}</div>{% endif %}
+        {% for e in field.errors %}<p class="mt-1 text-xs text-rose-600">{{ e }}</p>{% endfor %}
+      </div>{% endfor %}
+      <button class="rounded-lg bg-navy px-5 py-2 text-sm font-semibold text-gold hover:bg-navy-light">Change password</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'services/base.html' %}
+{% block title %}Confirm delete{% endblock %}
+{% block content %}
+<div class="max-w-lg rounded-xl border border-rose-200 bg-white p-6">
+  <h1 class="mb-2 text-xl font-bold text-navy">Delete this record?</h1>
+  <p class="mb-5 text-sm text-slate-600"><strong>{{ object }}</strong> will be permanently removed. This can't be undone.</p>
+  <form method="post" class="flex gap-3">{% csrf_token %}
+    <button class="rounded-lg bg-rose-600 px-5 py-2 text-sm font-semibold text-white hover:bg-rose-700">Yes, delete</button>
+    <a href="javascript:history.back()" class="rounded-lg border border-slate-300 px-5 py-2 text-sm text-slate-600">Cancel</a>
+  </form>
+</div>
+{% endblock %}

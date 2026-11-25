@@ -1,0 +1,68 @@
+{% extends 'services/base.html' %}{% load csm_extras %}
+{% block title %}Payments{% endblock %}
+{% block content %}
+<h1 class="mb-1 text-2xl font-bold text-navy">Payments</h1>
+<p class="mb-6 text-sm text-slate-500">Pay your invoices and see every payment you have made.</p>
+
+<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+  <div class="rounded-xl border border-slate-200 bg-white p-5"><div class="text-xs uppercase tracking-wide text-slate-500">Amount due</div><div class="mt-2 text-2xl font-bold {% if due %}text-rose-600{% else %}text-emerald-600{% endif %}">{{ due|inr }}</div></div>
+  <div class="rounded-xl border border-slate-200 bg-white p-5"><div class="text-xs uppercase tracking-wide text-slate-500">Awaiting confirmation</div><div class="mt-2 text-2xl font-bold text-sky-700">{{ pending|inr }}</div><div class="text-xs text-slate-400">UPI payments the workshop is verifying</div></div>
+  <div class="rounded-xl border border-slate-200 bg-white p-5"><div class="text-xs uppercase tracking-wide text-slate-500">Total paid</div><div class="mt-2 text-2xl font-bold text-navy">{{ paid|inr }}</div></div>
+</div>
+
+<section class="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+  <div class="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <h2 class="font-semibold text-navy">Invoices to pay</h2>
+    {% if owing|length > 1 %}<label class="flex cursor-pointer items-center gap-2 text-xs text-slate-500"><input type="checkbox" id="all" checked class="h-4 w-4"> Select all</label>{% endif %}
+  </div>
+  {% if owing %}
+  <form method="get" action="{% url 'portal_pay_multi' %}">
+    <ul class="divide-y divide-slate-100 text-sm">
+      {% for b in owing %}<li class="flex flex-wrap items-center justify-between gap-3 py-2.5">
+        <label class="flex cursor-pointer items-center gap-3">
+          <input type="checkbox" name="b" value="{{ b.pk }}" data-amt="{{ b.payable|floatformat:2 }}" checked class="inv h-4 w-4">
+          <span><a class="font-medium text-navy hover:text-gold" href="{% url 'portal_booking_detail' b.pk %}">#{{ b.pk }} &middot; {{ b.car.registration_number }}</a>
+            <span class="block text-xs text-slate-400">{{ b.booking_date|date:"d M Y" }} &middot; Total {{ b.total|inr }}</span></span>
+        </label>
+        <div class="flex items-center gap-3"><span class="font-semibold text-rose-600">{{ b.payable|inr }}</span>
+          <a href="{% url 'portal_pay_checkout' b.pk %}" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold text-navy hover:border-gold">Pay this one</a></div>
+      </li>{% endfor %}
+    </ul>
+    <div class="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-navy p-4 text-white">
+      <div class="text-sm"><span class="text-slate-300">Selected:</span> <span id="n" class="font-semibold">0</span> invoice<span id="s">s</span> &middot; <span id="sum" class="text-lg font-bold text-gold">Rs 0</span></div>
+      <button id="paybtn" class="rounded-lg bg-gold px-5 py-2 text-sm font-semibold text-navy hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40">Pay selected together</button>
+    </div>
+    <p class="mt-2 text-xs text-slate-400">One UPI payment covers every selected invoice. Want to pay only part of one invoice? Use "Pay this one".</p>
+  </form>
+  {% else %}<p class="py-6 text-center text-sm text-slate-400">You're all paid up.</p>{% endif %}
+</section>
+<script>
+  const boxes = [...document.querySelectorAll('.inv')], all = document.getElementById('all');
+  function update(){
+    let n = 0, t = 0;
+    boxes.forEach(b => { if (b.checked) { n++; t += parseFloat(b.dataset.amt); } });
+    document.getElementById('n').textContent = n;
+    document.getElementById('s').style.display = n === 1 ? 'none' : '';
+    document.getElementById('sum').textContent = 'Rs ' + t.toLocaleString('en-IN', {maximumFractionDigits: 0});
+    document.getElementById('paybtn').disabled = n === 0;
+    if (all) all.checked = n === boxes.length;
+  }
+  if (all) all.addEventListener('change', () => { boxes.forEach(b => b.checked = all.checked); update(); });
+  boxes.forEach(b => b.addEventListener('change', update));
+  if (boxes.length) update();
+</script>
+
+<section class="mt-6 rounded-xl border border-slate-200 bg-white p-5">
+  <h2 class="mb-3 font-semibold text-navy">Payment history</h2>
+  <div class="overflow-x-auto"><table class="w-full text-left text-sm">
+    <thead class="text-xs uppercase text-slate-400"><tr><th class="py-2">Date</th><th>Booking</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th></tr></thead>
+    <tbody class="divide-y divide-slate-100">
+      {% for p in payments %}<tr>
+        <td class="py-2">{{ p.paid_on|date:"d M Y" }}</td>
+        <td><a class="text-navy hover:text-gold" href="{% url 'portal_booking_detail' p.booking.pk %}">#{{ p.booking.pk }}</a> <span class="text-xs text-slate-400">{{ p.booking.car.registration_number }}</span></td>
+        <td class="font-medium {% if p.status == 'Rejected' %}text-slate-400 line-through{% endif %}">{{ p.amount|inr }}</td>
+        <td>{{ p.method }}</td><td class="font-mono text-xs text-slate-500">{{ p.reference|default:"-" }}</td><td>{{ p.status|pretty }}</td></tr>
+      {% empty %}<tr><td colspan="6" class="py-6 text-center text-slate-400">No payments yet.</td></tr>{% endfor %}
+    </tbody></table></div>
+</section>
+{% endblock %}

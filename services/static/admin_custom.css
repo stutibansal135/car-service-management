@@ -1,0 +1,136 @@
+
+/* CSM Premium Navy and Gold Admin Theme */
+
+:root {
+    color-scheme: light !important;
+    --primary: #101827;
+    --secondary: #1c2a40;
+    --gold: #d6ad60;
+
+    --body-bg: #f7f5f0;
+    --body-fg: #101827;
+    --body-quiet-color: #5d6470;
+    --body-loud-color: #101827;
+
+    --header-bg: #101827;
+    --header-color: #d6ad60;
+    --header-branding-color: #d6ad60;
+
+    --breadcrumbs-bg: #1c2a40;
+    --breadcrumbs-fg: #ffffff;
+
+    --link-fg: #9a742c;
+    --link-hover-color: #101827;
+    --link-selected-fg: #d6ad60;
+
+    --hairline-color: #ded7c9;
+    --border-color: #ded7c9;
+    --darkened-bg: #eee8dc;
+    --selected-row: #f0e5ce;
+
+    --button-bg: #101827;
+    --button-hover-bg: #d6ad60;
+    --default-button-bg: #101827;
+    --default-button-hover-bg: #1c2a40;
+}
+
+html,
+body {
+    background: #f7f5f0 !important;
+    color: #101827 !important;
+}
+
+#header {
+    background: #101827 !important;
+    color: #ffffff !important;
+    border-bottom: 3px solid #d6ad60 !important;
+}
+
+#branding h1,
+#branding h1 a,
+#branding h1 a:visited {
+    color: #d6ad60 !important;
+}
+
+#content h1,
+.dashboard #content h1 {
+    color: #101827 !important;
+}
+
+#content,
+#content-main,
+#content-related {
+    color: #101827 !important;
+}
+
+.module,
+#changelist,
+#changelist-form,
+.results,
+#changelist .results table {
+    background: #ffffff !important;
+    color: #101827 !important;
+}
+
+.module h2,
+.module caption,
+.inline-group h2 {
+    background: #1c2a40 !important;
+    color: #ffffff !important;
+}
+
+.module table th,
+.module table td,
+#changelist table th,
+#changelist table td {
+    color: #101827 !important;
+}
+
+.module table tr,
+#changelist table tr {
+    background: #ffffff !important;
+}
+
+.module table tr:nth-child(even),
+#changelist table tr:nth-child(even) {
+    background: #f0eadd !important;
+}
+
+#recent-actions-module {
+    background: #ffffff !important;
+    color: #101827 !important;
+    border: 1px solid #ded7c9 !important;
+}
+
+#recent-actions-module h2,
+#recent-actions-module h3 {
+    color: #101827 !important;
+}
+
+a:link,
+a:visited {
+    color: #9a742c;
+}
+
+#user-tools,
+#user-tools a {
+    color: #ffffff !important;
+}
+
+.button,
+input[type="submit"],
+input[type="button"],
+.submit-row input {
+    background: #101827 !important;
+    color: #ffffff !important;
+    border: 1px solid #d6ad60 !important;
+    border-radius: 5px !important;
+}
+
+.button:hover,
+input[type="submit"]:hover,
+input[type="button"]:hover,
+.submit-row input:hover {
+    background: #d6ad60 !important;
+    color: #101827 !important;
+}

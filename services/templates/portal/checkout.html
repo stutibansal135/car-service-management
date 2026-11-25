@@ -1,0 +1,68 @@
+{% extends 'services/base.html' %}{% load csm_extras %}
+{% block title %}Pay booking #{{ b.pk }}{% endblock %}
+{% block content %}
+<a href="{% url 'portal_booking_detail' b.pk %}" class="text-sm text-slate-500 hover:text-navy">&larr; Booking #{{ b.pk }}</a>
+<h1 class="mb-1 mt-2 text-2xl font-bold text-navy">Pay by UPI</h1>
+<p class="mb-6 text-sm text-slate-500">{{ b.car.brand }} {{ b.car.model }} ({{ b.car.registration_number }}) &middot; Total {{ total|inr }} &middot; Paid {{ paid|inr }}{% if pending %} &middot; Awaiting confirmation {{ pending|inr }}{% endif %}</p>
+
+<div class="grid gap-6 lg:grid-cols-5">
+  <div class="space-y-6 lg:col-span-3">
+    <section class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="mb-3 font-semibold text-navy"><span class="mr-2 rounded-full bg-navy px-2 py-0.5 text-xs text-gold">1</span>How much do you want to pay?</h2>
+      <form method="get" class="flex flex-wrap items-end gap-2">
+        <div class="w-48"><input type="number" name="amount" value="{{ amount }}" step="0.01" min="1" max="{{ payable }}" class="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm"></div>
+        <button class="rounded-lg border border-slate-300 px-4 py-2 text-sm hover:border-gold">Update QR</button>
+        <span class="text-xs text-slate-400">Up to {{ payable|inr }} (you can pay in parts)</span>
+      </form>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="mb-3 font-semibold text-navy"><span class="mr-2 rounded-full bg-navy px-2 py-0.5 text-xs text-gold">2</span>Scan and pay {{ amount|inr }}</h2>
+      <div class="flex flex-col items-center gap-4 sm:flex-row sm:items-start">
+        {% if not qr %}<p class="rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">QR code unavailable (the admin needs to run <code>python -m pip install segno</code>). Use the link below instead.</p>{% endif %}
+        {% if qr %}<div class="shrink-0 rounded-xl border border-slate-200 bg-white p-2">{{ qr|safe }}</div>{% endif %}
+        <div class="text-sm">
+          <p class="text-slate-600">Scan the QR with <strong>GPay, PhonePe, Paytm, BHIM</strong> or any UPI app.</p>
+          <p class="mt-2 text-slate-600">On your phone? <a href="{{ upi_uri }}" class="font-semibold text-navy underline hover:text-gold">Open your UPI app</a> with the amount filled in.</p>
+          <dl class="mt-3 space-y-1 text-xs text-slate-500">
+            <div>Pay to: <span class="font-mono text-slate-700">{{ upi_id }}</span></div>
+            <div>Name: {{ payee }}</div>
+            <div>Note: CSM Booking {{ b.pk }}</div>
+          </dl>
+        </div>
+      </div>
+    </section>
+
+    <section class="rounded-xl border border-slate-200 bg-white p-5">
+      <h2 class="mb-1 font-semibold text-navy"><span class="mr-2 rounded-full bg-navy px-2 py-0.5 text-xs text-gold">3</span>Enter your transaction ID</h2>
+      <p class="mb-3 text-xs text-slate-500">After paying, open the payment in your UPI app and copy the 12-digit <strong>UTR / UPI Ref No.</strong></p>
+      <form method="post" action="{% url 'portal_pay_upi' b.pk %}" class="flex flex-wrap items-end gap-2">{% csrf_token %}
+        {{ form.amount }}
+        <div class="w-56">{{ form.utr }}</div>
+        <button class="rounded-lg bg-navy px-5 py-2 text-sm font-semibold text-gold hover:bg-navy-light">I've paid {{ amount|inr }}</button>
+      </form>
+      <p class="mt-3 text-xs text-slate-400">The workshop checks the payment in the bank and confirms it, usually within a few hours. Your invoice updates once it's confirmed.</p>
+    </section>
+  </div>
+
+  <aside class="space-y-6 lg:col-span-2">
+    <section class="rounded-xl bg-navy p-5 text-white">
+      <h2 class="mb-3 font-semibold text-gold">Summary</h2>
+      <dl class="space-y-1.5 text-sm">
+        <div class="flex justify-between"><dt class="text-slate-300">Invoice total</dt><dd>{{ total|inr }}</dd></div>
+        <div class="flex justify-between"><dt class="text-slate-300">Already paid</dt><dd>{{ paid|inr }}</dd></div>
+        {% if pending %}<div class="flex justify-between"><dt class="text-slate-300">Awaiting confirmation</dt><dd>{{ pending|inr }}</dd></div>{% endif %}
+        <div class="flex justify-between border-t border-white/20 pt-2 font-semibold text-gold"><dt>Still payable</dt><dd>{{ payable|inr }}</dd></div>
+      </dl>
+    </section>
+    <section class="rounded-xl border border-dashed border-slate-300 bg-white p-5">
+      <h2 class="mb-1 font-semibold text-navy">Card / net banking</h2>
+      <p class="mb-3 text-xs text-slate-400">Demo checkout - confirmed instantly, no real money is charged.</p>
+      <form method="post" action="{% url 'portal_booking_pay' b.pk %}" class="space-y-2">{% csrf_token %}
+        {{ demo_form.amount }}{{ demo_form.method }}
+        <button class="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm font-semibold hover:border-gold">Pay (demo)</button>
+      </form>
+    </section>
+  </aside>
+</div>
+{% endblock %}
